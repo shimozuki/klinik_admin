@@ -17,6 +17,8 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use App\Filament\Widgets\ReservasiChartWidget;
+use App\Filament\Widgets\PendapatanChartWidget;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -40,6 +42,9 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 \App\Filament\Widgets\DashboardStatsWidget::class,
                 Widgets\AccountWidget::class,
+                ReservasiChartWidget::class,
+                PendapatanChartWidget::class,
+
             ])
             ->middleware([
                 EncryptCookies::class,
