@@ -9,6 +9,7 @@ use App\Models\RekamMedis;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Traits\HasRoles;
 
 class DashboardStatsWidget extends BaseWidget
 {
@@ -20,7 +21,7 @@ class DashboardStatsWidget extends BaseWidget
         $totalPasien = Pasien::count();
 
         // Hitung total dokter
-        $totalDokter = User::count();
+        $totalDokter = User::role('dokter')->count();
 
         // Hitung total pendapatan hari ini
         $pendapatanHariIni = RekamMedis::whereDate('created_at', today())
