@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class KonsultasiOnline extends Model
 {
@@ -44,5 +45,24 @@ class KonsultasiOnline extends Model
     public function dokter()
     {
         return $this->belongsTo(User::class, 'dokter_id');
+    }
+
+    public static function generateNomorKonsultasi()
+    {
+        $today = Carbon::now()->format('Ymd');
+
+        // Ambil nomor terakhir hari ini
+        $last = self::whereDate('created_at', Carbon::today())
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($last && $last->nomor_konsultasi) {
+            $lastNumber = intval(substr($last->nomor_konsultasi, -4));
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        return 'KO-' . $today . '-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
 }
