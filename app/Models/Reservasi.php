@@ -25,6 +25,7 @@ class Reservasi extends Model
         'dikonfirmasi_pada',
         'dibatalkan_pada',
         'alasan_batal',
+        'layanan_id',
     ];
 
     protected $casts = [
@@ -71,5 +72,13 @@ class Reservasi extends Model
     public function jadwal()
     {
         return $this->belongsTo(JadwalDokter::class, 'jadwal_id');
+    }
+
+    /**
+     * Relasi ke layanan
+     */
+    public function layanan()
+    {
+        return $this->belongsTo(LayananTindakan::class, 'layanan_id');
     }
 }

@@ -15,27 +15,61 @@ class ReservasiController extends Controller
     public function index()
     {
         try {
-            $data = Reservasi::with(['dokter', 'jadwal', 'pasien'])
+            $data = Reservasi::query()
                 ->where('pasien_id', auth()->user()->pasien->id)
+                ->with([
+                    'dokter:id,name,specialization',
+                    'jadwal' => function ($q) {
+                        $q->join('users as dokter', 'dokter.id', '=', 'jadwal_dokter.dokter_id')
+                            ->select([
+                                'jadwal_dokter.id',
+                                'dokter.name as nama_dokter',
+                                'jadwal_dokter.hari',
+                                'jadwal_dokter.jam_mulai',
+                                'jadwal_dokter.jam_selesai',
+                                'jadwal_dokter.kuota',
+                                'jadwal_dokter.status_aktif',
+                            ]);
+                    },
+                    'layanan:id,nama'
+                ])
+                ->select([
+                    'id',
+                    'nomor_reservasi',
+                    'pasien_id',
+                    'dokter_id',
+                    'jadwal_id',
+                    'tanggal_reservasi',
+                    'layanan_id',
+                    'jam_reservasi',
+                    'nomor_antrian',
+                    'status',
+                    'keluhan',
+                ])
+                ->orderByDesc('tanggal_reservasi')
                 ->get();
+
             return response()->json([
                 'success' => true,
-                'data'    => $data,
+                'data' => $data,
             ]);
         } catch (\Throwable $th) {
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengambil data reservasi',
-                'error'   => $th->getMessage(),
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
+
+
     public function store(Request $request)
     {
         try {
             $request->validate([
                 'jadwal_id' => 'required|exists:jadwal_dokter,id',
                 'keluhan' => 'nullable|string',
+                'layanan_id' => 'nullable|exists:layanan_tindakan,id',
             ]);
 
             $reservasi = DB::transaction(function () use ($request) {
@@ -65,6 +99,7 @@ class ReservasiController extends Controller
                     'nomor_antrian' => $nomorAntrian,
                     'status' => 'menunggu',
                     'keluhan' => $request->keluhan,
+                    'layanan_id' => $request->layanan_id,
                 ]);
             });
 
@@ -78,6 +113,43 @@ class ReservasiController extends Controller
                 'success' => false,
                 'message' => 'Gagal buat reservasi',
                 'error'   => $th->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function batalkan($id)
+    {
+        try {
+            $reservasi = Reservasi::where('id', $id)
+                ->where('pasien_id', auth()->user()->pasien->id)
+                ->firstOrFail();
+
+            if (in_array($reservasi->status, ['selesai', 'dibatalkan'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Reservasi tidak dapat dibatalkan',
+                ], 422);
+            }
+
+            $reservasi->update([
+                'status' => 'dibatalkan',
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Reservasi berhasil dibatalkan',
+                'data' => $reservasi,
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Reservasi tidak ditemukan',
+            ], 404);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membatalkan reservasi',
+                'error' => $th->getMessage(),
             ], 500);
         }
     }
