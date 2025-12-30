@@ -75,16 +75,16 @@ class AuthController extends Controller
             'password' => 'required|min:6',
         ]);
 
-        $credentials = $request->only('email', 'password');
-
-        if (!$token = Auth::guard('api')->attempt($credentials)) {
+        if (!$token = Auth::guard('api')->attempt(
+            $request->only('email', 'password')
+        )) {
             return response()->json([
                 'success' => false,
                 'message' => 'Email atau password salah'
             ], 401);
         }
 
-        $user = Auth::guard('api')->user();
+        $user = Auth::guard('api')->user()->load('pasien');
 
         if (!$user->hasRole('pasien')) {
             return response()->json([
@@ -99,12 +99,15 @@ class AuthController extends Controller
             'token'   => $token,
             'type'    => 'Bearer',
             'user'    => [
-                'id'    => $user->id,
-                'name'  => $user->name,
-                'email' => $user->email,
-            ]
+                'id'     => $user->id,
+                'name'   => $user->name,
+                'email'  => $user->email,
+                'phone'  => $user->phone,
+                'pasien' => $user->pasien, // 🔥 INI KUNCI
+            ],
         ]);
     }
+
 
     public function me()
     {
