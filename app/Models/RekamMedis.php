@@ -4,6 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Reservasi;   // ✅ TAMBAHKAN INI
+use App\Models\Pasien;
+use App\Models\User;
+use App\Models\ResepDetail;
 
 class RekamMedis extends Model
 {
@@ -18,10 +22,11 @@ class RekamMedis extends Model
         'reservasi_id',
         'tanggal_pemeriksaan',
         'anamnesis',
-        'pemeriksaan_fisik',
         'diagnosis',
-        'terapi',
-        'resep_obat',
+        'tekanan_darah',
+        'detak_jantung',
+        'suhu',
+        'berat_badan',
         'catatan',
         'biaya',
     ];
@@ -29,43 +34,42 @@ class RekamMedis extends Model
     protected $casts = [
         'tanggal_pemeriksaan' => 'date',
         'biaya' => 'decimal:2',
+        'suhu' => 'decimal:1',
+        'berat_badan' => 'decimal:2',
     ];
 
-    /**
-     * Relasi ke pasien
-     */
+    // ================= RELATIONS =================
+
     public function pasien()
     {
         return $this->belongsTo(Pasien::class, 'pasien_id');
     }
 
-    /**
-     * Relasi ke dokter (users)
-     */
     public function dokter()
     {
         return $this->belongsTo(User::class, 'dokter_id');
     }
 
-    /**
-     * Relasi ke reservasi
-     */
     public function reservasi()
     {
         return $this->belongsTo(Reservasi::class, 'reservasi_id');
     }
+
+    public function resepDetail()
+    {
+        return $this->hasMany(ResepDetail::class);
+    }
+
+    // ================= HELPER =================
 
     public static function generateNomorRekam(): string
     {
         $date = now()->format('Ymd');
         $lastRekam = static::whereDate('created_at', now())->latest()->first();
 
-        if ($lastRekam) {
-            $lastNumber = (int) substr($lastRekam->nomor_rekam, -4);
-            $newNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
-        } else {
-            $newNumber = '0001';
-        }
+        $newNumber = $lastRekam
+            ? str_pad(((int) substr($lastRekam->nomor_rekam, -4)) + 1, 4, '0', STR_PAD_LEFT)
+            : '0001';
 
         return 'RM-' . $date . '-' . $newNumber;
     }

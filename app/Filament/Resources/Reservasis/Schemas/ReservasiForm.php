@@ -106,6 +106,7 @@ class ReservasiForm
                     ->collapsed(false),
 
                 // Card 4: Tanggal & Waktu Reservasi
+                // Card 4: Tanggal & Waktu Reservasi
                 Section::make('📅 Tanggal & Waktu')
                     ->description('Tentukan tanggal dan jam reservasi')
                     ->schema([
@@ -114,7 +115,7 @@ class ReservasiForm
                             ->required()
                             ->native(false)
                             ->displayFormat('d/m/Y')
-                            ->minDate(now())
+                            ->minDate(today()) // ✅ FIX
                             ->prefixIcon('heroicon-m-calendar')
                             ->prefixIconColor('primary')
                             ->helperText('Pilih tanggal kunjungan')
@@ -144,6 +145,7 @@ class ReservasiForm
                     ->columns(3)
                     ->collapsible()
                     ->collapsed(false),
+
 
                 // Card 5: Keluhan & Catatan
                 Section::make('📝 Keluhan & Catatan')

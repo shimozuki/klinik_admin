@@ -66,6 +66,12 @@ class Reservasi extends Model
         return $this->belongsTo(User::class, 'dokter_id');
     }
 
+    public function rekamMedis()
+    {
+        return $this->hasOne(RekamMedis::class, 'reservasi_id');
+    }
+
+
     /**
      * Relasi ke jadwal dokter
      */
