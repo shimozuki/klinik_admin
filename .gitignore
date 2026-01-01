@@ -22,3 +22,8 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Firebase
+android/app/google-services.json
+lib/firebase_options.dart
+storage/app/firebase/*.json
