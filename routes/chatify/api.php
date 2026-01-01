@@ -1,5 +1,6 @@
 <?php
 
+use Chatify\Http\Controllers\Api\MessagesController;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -25,7 +26,7 @@ Route::post('/fetchMessages', 'MessagesController@fetch')->name('api.fetch.messa
 /**
  * Download attachments route to create a downloadable links
  */
-Route::get('/download/{fileName}', 'MessagesController@download')->name('api.'.config('chatify.attachments.download_route_name'));
+Route::get('/download/{fileName}', 'MessagesController@download')->name('api.' . config('chatify.attachments.download_route_name'));
 
 /**
  * Make messages as seen
@@ -35,7 +36,7 @@ Route::post('/makeSeen', 'MessagesController@seen')->name('api.messages.seen');
 /**
  * Get contacts
  */
-Route::get('/getContacts', 'MessagesController@getContacts')->name('api.contacts.get');
+Route::get('/getContacts', [MessagesController::class, 'getContacts']);
 
 /**
  * Star in favorite list
@@ -71,5 +72,3 @@ Route::post('/updateSettings', 'MessagesController@updateSettings')->name('api.a
  * Set active status
  */
 Route::post('/setActiveStatus', 'MessagesController@setActiveStatus')->name('api.activeStatus.set');
-
-

@@ -29,6 +29,7 @@ class User extends Authenticatable implements JWTSubject
         'specialization',
         'license_number',
         'is_active',
+        'fcm_token',
     ];
 
     /**
