@@ -29,11 +29,16 @@ class RekamMedis extends Model
         'berat_badan',
         'catatan',
         'biaya',
+        'treatment',
+        'biaya_treatment',
+        'biaya_konsultasi',
     ];
 
     protected $casts = [
         'tanggal_pemeriksaan' => 'date',
         'biaya' => 'decimal:2',
+        'biaya_treatment' => 'decimal:2',
+        'biaya_konsultasi' => 'decimal:2',
         'suhu' => 'decimal:1',
         'berat_badan' => 'decimal:2',
     ];
@@ -77,5 +82,14 @@ class RekamMedis extends Model
     public function getBiayaFormatAttribute(): string
     {
         return 'Rp ' . number_format($this->biaya, 0, ',', '.');
+    }
+
+    protected static function booted()
+    {
+        static::saving(function ($rekamMedis) {
+            $rekamMedis->biaya =
+                ($rekamMedis->biaya_treatment ?? 0) +
+                ($rekamMedis->biaya_konsultasi ?? 0);
+        });
     }
 }

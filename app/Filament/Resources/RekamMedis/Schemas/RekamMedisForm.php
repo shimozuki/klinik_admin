@@ -134,20 +134,54 @@ class RekamMedisForm
                         ->reorderable(false),
                 ]),
 
-            /* ======================
-             | CATATAN & BIAYA
-             ====================== */
             Section::make('📝 Tindakan & Biaya')
                 ->schema([
-                    Forms\Components\Textarea::make('Tindakan')
+                    Forms\Components\Textarea::make('treatment')
+                        ->label('Perawatan/Tindakan')
+                        ->required()
                         ->rows(3)
-                        ->placeholder('Tindakan yang dilakukan selama pemeriksaan...'),
+                        ->placeholder('Tuliskan tindakan atau perawatan yang dilakukan...'),
 
-                    Forms\Components\TextInput::make('biaya')
+                    Forms\Components\Textarea::make('catatan')
+                        ->label('Catatan Dokter')
+                        ->required()
+                        ->rows(3)
+                        ->placeholder('Catatan Dokter'),
+                    Forms\Components\TextInput::make('biaya_treatment')
+                        ->label('Biaya Tindakan')
                         ->numeric()
                         ->prefix('Rp')
                         ->default(0)
-                        ->required(),
+                        ->required()
+                        ->reactive()
+                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                            $set(
+                                'biaya',
+                                ($state ?? 0) + ($get('biaya_konsultasi') ?? 0)
+                            );
+                        }),
+
+                    Forms\Components\TextInput::make('biaya_konsultasi')
+                        ->label('Biaya Konsultasi')
+                        ->numeric()
+                        ->prefix('Rp')
+                        ->default(0)
+                        ->required()
+                        ->reactive()
+                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                            $set(
+                                'biaya',
+                                ($get('biaya_treatment') ?? 0) + ($state ?? 0)
+                            );
+                        }),
+
+                    Forms\Components\TextInput::make('biaya')
+                        ->label('Total Biaya')
+                        ->numeric()
+                        ->prefix('Rp')
+                        ->disabled()
+                        ->dehydrated(),
+
                 ])
                 ->columns(2)
                 ->collapsed(),

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\RegisterController;
 use App\Http\Controllers\Api\ReservasiController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RekamMedisController;
+use App\Http\Controllers\Api\RiwayatController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
@@ -24,7 +25,8 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/rekam-medis/pasien', [RekamMedisController::class, 'byPasien']);
     Route::get('/rekam-medis/reservasi/{nomorReservasi}', [RekamMedisController::class, 'byReservasi']);
 
-    Route::get('/Dental-visit', [DentalVisitController::class, 'index']);
+    Route::get('/riwayat', [RiwayatController::class, 'index']);
+
 
 
 
