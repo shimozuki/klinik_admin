@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\RegisterController;
 use App\Http\Controllers\Api\ReservasiController;
 use App\Http\Controllers\Api\RekamMedisController;
 use App\Http\Controllers\Api\RiwayatController;
+use App\Http\Controllers\Api\UserController;
 
 /*
 |--------------------------------------------------------------------------
