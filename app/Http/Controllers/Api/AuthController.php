@@ -114,13 +114,21 @@ class AuthController extends Controller
         return response()->json(Auth::guard('api')->user());
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
+        $user = Auth::guard('api')->user();
+
+        if ($user) {
+            $user->update([
+                'fcm_token' => null,
+            ]);
+        }
+
         Auth::guard('api')->logout();
 
         return response()->json([
             'success' => true,
-            'message' => 'Logout berhasil'
+            'message' => 'Logout berhasil',
         ]);
     }
 }
