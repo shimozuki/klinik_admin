@@ -13,14 +13,14 @@ class RiwayatController extends Controller
     {
         $pasienId = auth()->user()->pasien->id;
 
-        $data = DB::table('rekam_medis as rm')
-            ->join('pasien as p', 'p.id', '=', 'rm.pasien_id')
+        $data = DB::table('reservasi as r')
+            ->join('pasien as p', 'p.id', '=', 'r.pasien_id')
             ->join('users as u', 'u.id', '=', 'p.user_id')
-            ->leftJoin('reservasi as r', 'r.id', '=', 'rm.reservasi_id')
+            ->leftJoin('rekam_medis as rm', 'rm.reservasi_id', '=', 'r.id')
             ->leftJoin('layanan_tindakan as lt', 'lt.id', '=', 'r.layanan_id')
-            ->where('rm.pasien_id', $pasienId)
+            ->where('r.pasien_id', $pasienId)
             ->select([
-                'rm.id',
+                DB::raw('COALESCE(rm.id, r.id) as id'),
                 'u.name as patientName',
                 'p.nomor_rekam_medis as patientId',
                 'rm.tanggal_pemeriksaan as visitDate',
@@ -35,7 +35,7 @@ class RiwayatController extends Controller
                 'r.status',
                 'r.tanggal_reservasi as baseNextAppointment'
             ])
-            ->orderBy('rm.tanggal_pemeriksaan', 'desc')
+            ->orderBy('r.tanggal_reservasi', 'desc')
             ->get();
 
         return response()->json(
@@ -58,11 +58,11 @@ class RiwayatController extends Controller
                     'diagnosis' => $item->diagnosis,
                     'treatment' => $item->treatment,
                     'notes' => $item->notes,
-                    'treatmentCost' => (int) $item->treatmentCost,
-                    'consultationFee' => (int) $item->consultationFee,
-                    'additionalCost' => $item->totalCost,
+                    'treatmentCost' => (int) ($item->treatmentCost ?? 0),
+                    'consultationFee' => (int) ($item->consultationFee ?? 0),
+                    'additionalCost' => (int) ($item->totalCost ?? 0),
                     'paymentMethod' => 'cash',
-                    'status' => $item->status ?? 'completed',
+                    'status' => $item->status,
                     'nextAppointment' => $nextAppointment,
                 ];
             })
