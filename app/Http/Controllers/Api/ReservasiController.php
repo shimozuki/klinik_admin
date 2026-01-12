@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Filament\Resources\Reservasis\ReservasiResource;
 use App\Http\Controllers\Controller;
 use App\Models\JadwalDokter;
 use App\Models\Reservasi;
@@ -9,6 +10,8 @@ use App\Models\User;
 use App\Services\ReservasiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Filament\Notifications\Notification;
+use Filament\Actions\Action;
 
 class ReservasiController extends Controller
 {
@@ -101,6 +104,26 @@ class ReservasiController extends Controller
                     'keluhan' => $request->keluhan,
                     'layanan_id' => $request->layanan_id,
                 ]);
+            });
+
+            User::role('admin', 'web')->each(function ($admin) use ($reservasi) {
+                Notification::make()
+                    ->title('Reservasi Baru')
+                    ->body(
+                        'Pasien: ' . ($reservasi->pasien->user->name ?? '-') .
+                            "\nTanggal: " . $reservasi->tanggal_reservasi
+                    )
+                    ->icon('heroicon-o-calendar-days')
+                    ->success()
+                    ->actions([
+                        Action::make('lihat')
+                            ->label('Lihat')
+                            ->url(
+                                ReservasiResource::getUrl('index')
+                            )
+                            ->markAsRead(),
+                    ])
+                    ->sendToDatabase($admin, isEventDispatched: true);
             });
 
             return response()->json([

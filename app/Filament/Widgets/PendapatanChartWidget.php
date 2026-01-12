@@ -12,8 +12,8 @@ class PendapatanChartWidget extends ChartWidget
 
     protected static ?int $sort = 3;
 
-    // Lebar widget (bisa 'full', 'half', atau angka kolom)
-    protected int | string | array $columnSpan = 'full';
+    protected int | string | array $columnSpan = 1;
+
 
     protected function getData(): array
     {
@@ -175,35 +175,44 @@ class PendapatanChartWidget extends ChartWidget
         ];
     }
 
-    // Optional: Format angka di tooltip
     protected function getOptions(): array
     {
         return [
+            'interaction' => [
+                'mode' => 'nearest',
+                'intersect' => false,
+            ],
             'plugins' => [
                 'legend' => [
                     'display' => true,
                 ],
                 'tooltip' => [
+                    'enabled' => true,
+                    'mode' => 'nearest',
+                    'intersect' => false,
                     'callbacks' => [
                         'label' => 'function(context) {
-                            let label = context.dataset.label || "";
-                            if (label) {
-                                label += ": ";
-                            }
-                            label += "Rp " + context.parsed.y.toLocaleString("id-ID");
-                            return label;
-                        }',
+                        let label = context.dataset.label || "";
+                        if (label) {
+                            label += ": ";
+                        }
+                        label += "Rp " + context.parsed.y.toLocaleString("id-ID");
+                        return label;
+                    }',
                     ],
+                ],
+                'datalabels' => [
+                    'anchor' => 'end',
+                    'align' => 'top',
                 ],
             ],
             'scales' => [
+                'x' => [
+                    'offset' => true,
+                ],
                 'y' => [
                     'beginAtZero' => true,
-                    'ticks' => [
-                        'callback' => 'function(value) {
-                            return "Rp " + value.toLocaleString("id-ID");
-                        }',
-                    ],
+                    'grace' => '15%',
                 ],
             ],
         ];

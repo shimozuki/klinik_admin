@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Widgets\LayananPopulerChartWidget;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -19,6 +20,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Widgets\ReservasiChartWidget;
 use App\Filament\Widgets\PendapatanChartWidget;
+use App\Filament\Widgets\ReservasiTerbaruWidget;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -33,6 +35,8 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Blue,
             ])
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
@@ -44,7 +48,8 @@ class AdminPanelProvider extends PanelProvider
                 Widgets\AccountWidget::class,
                 ReservasiChartWidget::class,
                 PendapatanChartWidget::class,
-
+                LayananPopulerChartWidget::class,
+                ReservasiTerbaruWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
