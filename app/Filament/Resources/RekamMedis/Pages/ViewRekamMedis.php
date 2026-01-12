@@ -14,8 +14,26 @@ class ViewRekamMedis extends ViewRecord
     {
         $actions = [];
 
-        if (auth()->user()->hasRole('dokter') && $this->record->dokter_id === auth()->id()) {
+        if (
+            auth()->user()->hasRole('dokter') &&
+            $this->record->dokter_id === auth()->id()
+        ) {
             $actions[] = Actions\EditAction::make();
+        }
+
+        if (
+            auth()->user()->hasRole('admin') ||
+            (
+                auth()->user()->hasRole('dokter') &&
+                $this->record->dokter_id === auth()->id()
+            )
+        ) {
+            $actions[] = Actions\Action::make('cetak_pdf')
+                ->label('Cetak PDF')
+                ->icon('heroicon-o-printer')
+                ->url(fn() => route('rekam-medis.pdf', $this->record))
+                ->openUrlInNewTab()
+                ->color('primary');
         }
 
         return $actions;

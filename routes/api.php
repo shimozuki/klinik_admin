@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\DentalVisitController;
 use App\Http\Controllers\Api\JadwalController;
+use App\Http\Controllers\Api\LayananController;
 use App\Http\Controllers\Api\OptionController;
 use App\Http\Controllers\Api\PasienProfileController;
 use App\Http\Controllers\Api\RegisterController;
@@ -63,5 +64,8 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/options/layanan', [OptionController::class, 'listLayanan']);
 });
 
+Route::get('/layanan', [LayananController::class, 'index']);
+Route::get('/jadwal-publik', [JadwalController::class, 'index']);
+Route::get('/dokter', [LayananController::class, 'getDokter']);
 Route::post('/save-fcm-token', [UserController::class, 'saveFcmToken'])
     ->middleware('auth:api');

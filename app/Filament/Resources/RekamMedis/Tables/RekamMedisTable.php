@@ -9,6 +9,7 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Filament\Actions;
 
 class RekamMedisTable
 {
@@ -90,9 +91,30 @@ class RekamMedisTable
             ])
             ->recordActions([
                 ViewAction::make(),
+
                 EditAction::make()
-                    ->visible(fn() => auth()->user()->hasRole('dokter')),
+                    ->visible(
+                        fn($record) =>
+                        auth()->user()->hasRole('dokter') &&
+                            $record->dokter_id === auth()->id()
+                    ),
+
+                Actions\Action::make('cetak_pdf')
+                    ->label('Cetak')
+                    ->icon('heroicon-o-printer')
+                    ->color('primary')
+                    ->url(fn($record) => route('rekam-medis.pdf', $record))
+                    ->openUrlInNewTab()
+                    ->visible(
+                        fn($record) =>
+                        auth()->user()->hasRole('admin') ||
+                            (
+                                auth()->user()->hasRole('dokter') &&
+                                $record->dokter_id === auth()->id()
+                            )
+                    ),
             ])
+
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()

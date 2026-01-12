@@ -13,7 +13,7 @@ class PasienPolicy
     public function viewAny(User $user): bool
     {
         // Hanya Admin yang bisa melihat list pasien
-        return $user->hasRole('admin');
+        return $user->hasRole('admin') || $user->hasRole('dokter');
     }
 
     /**
@@ -21,7 +21,7 @@ class PasienPolicy
      */
     public function view(User $user, Pasien $pasien): bool
     {
-        return $user->hasRole('admin');
+        return $user->hasRole('admin') || $user->hasRole('dokter');
     }
 
     /**
