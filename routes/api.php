@@ -23,18 +23,24 @@ use App\Http\Controllers\Api\UserController;
 |--------------------------------------------------------------------------
 */
 
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/logout', [AuthController::class, 'logout']);
+/*
+| AUTH
+*/
+
+Route::post('/login', [AuthController::class, 'login'])
+    ->middleware('throttle:5,1');
+
+Route::post('/register', [AuthController::class, 'register'])
+    ->middleware('throttle:3,1');
+
+Route::post('/logout', [AuthController::class, 'logout'])
+    ->middleware('auth:api');
 
 /*
-|--------------------------------------------------------------------------
-| PROTECTED API (JWT)
-|--------------------------------------------------------------------------
+| PROTECTED API
 */
-Route::middleware('auth:api')->group(function () {
+Route::middleware(['auth:api', 'throttle:100,1'])->group(function () {
 
-    // ====== CORE ======
     Route::get('/jadwal-dokter', [JadwalController::class, 'index']);
     Route::post('/reservasi', [ReservasiController::class, 'store']);
     Route::get('/reservasi', [ReservasiController::class, 'index']);
@@ -44,28 +50,44 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/rekam-medis/reservasi/{nomorReservasi}', [RekamMedisController::class, 'byReservasi']);
     Route::get('/riwayat', [RiwayatController::class, 'index']);
 
-    // ====== CHAT (HTTP) ======
-    Route::get('/chat/contacts', [ChatController::class, 'contacts']);
-    Route::post('/fetchMessagesMobile', [ChatController::class, 'fetchMessagesMobile']);
+    Route::get('/chat/contacts', [ChatController::class, 'contacts'])
+        ->middleware('throttle:60,1');
 
-    // ====== CHAT (PUSHER AUTH) ======
+    Route::post('/fetchMessagesMobile', [ChatController::class, 'fetchMessagesMobile'])
+        ->middleware('throttle:120,1');
+
     Route::post('/chat/auth', function (Request $request) {
         return Chatify::pusherAuth(
-            $request->user(),        // JWT user
-            auth()->user(),          // same user
+            $request->user(),
+            auth()->user(),
             $request->channel_name,
             $request->socket_id
         );
-    });
+    })->middleware('throttle:30,1');
 
+    Route::get('/notifications', [UserController::class, 'notifications']);
+    Route::put('/notifications/{id}/read', [UserController::class, 'markNotificationRead']);
+    Route::delete('/notifications/{id}', [UserController::class, 'deleteNotification']);
+
+
+    // Route::put('/pasien/profile', [PasienProfileController::class, 'update']);
     // ====== PROFILE & OPTIONS ======
     Route::put('/pasien/profile', [PasienProfileController::class, 'update']);
     Route::get('/options/dokter', [OptionController::class, 'listDokter']);
     Route::get('/options/layanan', [OptionController::class, 'listLayanan']);
 });
 
-Route::get('/layanan', [LayananController::class, 'index']);
-Route::get('/jadwal-publik', [JadwalController::class, 'index']);
-Route::get('/dokter', [LayananController::class, 'getDokter']);
+/*
+| PUBLIC
+*/
+Route::get('/layanan', [LayananController::class, 'index'])
+    ->middleware('throttle:60,1');
+
+Route::get('/jadwal-publik', [JadwalController::class, 'index'])
+    ->middleware('throttle:60,1');
+
+Route::get('/dokter', [LayananController::class, 'getDokter'])
+    ->middleware('throttle:60,1');
+
 Route::post('/save-fcm-token', [UserController::class, 'saveFcmToken'])
-    ->middleware('auth:api');
+    ->middleware(['auth:api', 'throttle:30,1']);

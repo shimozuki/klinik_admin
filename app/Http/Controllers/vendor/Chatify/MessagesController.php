@@ -156,12 +156,10 @@ class MessagesController extends Controller
             $receiver = User::find($request['id']);
 
             if ($receiver && $receiver->fcm_token) {
-                // Tentukan body notifikasi
                 $notificationBody = $request['message']
                     ? trim($request['message'])
                     : ($attachment ? '📎 Sent an attachment' : 'Sent a message');
 
-                // Kirim notifikasi
                 $result = app(FirebaseService::class)->sendNotification(
                     $receiver->fcm_token,
                     Auth::user()->name,
@@ -173,11 +171,10 @@ class MessagesController extends Controller
                         'message_id'     => (string) $message->id,
                         'has_attachment' => $attachment ? '1' : '0',
                         'timestamp'      => now()->toIso8601String(),
-                        'click_action'   => 'FLUTTER_NOTIFICATION_CLICK', // 👈 Untuk handle tap
+                        'click_action'   => 'FLUTTER_NOTIFICATION_CLICK',
                     ]
                 );
 
-                // Optional: Log jika gagal
                 if (!$result['success']) {
                     \Log::warning('FCM failed for user: ' . $receiver->id, $result);
                 }

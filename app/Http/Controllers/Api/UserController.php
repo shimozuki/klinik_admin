@@ -24,4 +24,36 @@ class UserController extends Controller
             'message' => 'FCM token saved',
         ]);
     }
+
+    public function notifications(Request $request)
+    {
+        return response()->json(
+            $request->user()
+                ->notifications()
+                ->latest()
+                ->get()
+        );
+    }
+
+    public function markNotificationRead($id, Request $request)
+    {
+        $notification = $request->user()
+            ->notifications()
+            ->where('id', $id)
+            ->firstOrFail();
+
+        $notification->markAsRead();
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    public function deleteNotification($id, Request $request)
+    {
+        $request->user()
+            ->notifications()
+            ->where('id', $id)
+            ->delete();
+
+        return response()->json(['status' => 'deleted']);
+    }
 }
