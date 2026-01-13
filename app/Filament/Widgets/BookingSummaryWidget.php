@@ -20,7 +20,7 @@ class BookingSummaryWidget extends StatsOverviewWidget
     {
         $totalBooking   = Reservasi::count();
         $bookingSelesai = Reservasi::where('status', 'selesai')->count();
-        $bookingPending = Reservasi::where('status', 'pending')->count();
+        $bookingPending = Reservasi::where('status', 'menunggu')->count();
         $bookingBatal   = Reservasi::where('status', 'dibatalkan')->count();
 
         $totalPendapatan = RekamMedis::sum('biaya');
