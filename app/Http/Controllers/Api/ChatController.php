@@ -73,13 +73,34 @@ class ChatController extends Controller
             ->orderBy('created_at', 'asc')
             ->get()
             ->map(function ($msg) {
+
+                // ===== TAMBAHAN (AMAN) =====
+                $type = 'text';
+                $attachment = null;
+
+                if ($msg->attachment) {
+                    $att = json_decode($msg->attachment, true);
+
+                    $attachment = [
+                        'url'  => asset('storage/attachments/' . $att['new_name']),
+                        'name' => $att['old_name'],
+                        'mime' => pathinfo($att['old_name'], PATHINFO_EXTENSION),
+                    ];
+
+                    $type = 'image';
+                }
+                // ===========================
+
                 return [
+                    // ===== STRUKTUR LAMA (UTUH) =====
                     'id'         => $msg->id,
                     'from_id'    => $msg->from_id,
                     'to_id'      => $msg->to_id,
                     'body'       => html_entity_decode($msg->body),
                     'seen'       => $msg->seen,
                     'created_at' => $msg->created_at->toIso8601String(),
+                    'type'       => $type,
+                    'attachment' => $attachment,
                 ];
             });
 

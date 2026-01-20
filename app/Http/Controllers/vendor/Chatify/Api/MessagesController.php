@@ -19,7 +19,7 @@ class MessagesController extends Controller
 {
     protected $perPage = 30;
 
-     /**
+    /**
      * Authinticate the connection for pusher
      *
      * @param Request $request
@@ -50,7 +50,7 @@ class MessagesController extends Controller
         // User data
         if ($request['type'] == 'user') {
             $fetch = User::where('id', $request['id'])->first();
-            if($fetch){
+            if ($fetch) {
                 $userAvatar = Chatify::getUserWithAvatar($fetch)->avatar;
             }
         }
@@ -80,7 +80,7 @@ class MessagesController extends Controller
             ], 200);
         } else {
             return response()->json([
-                'message'=>"Sorry, File does not exist in our server or may have been deleted!"
+                'message' => "Sorry, File does not exist in our server or may have been deleted!"
             ], 404);
         }
     }
@@ -145,7 +145,7 @@ class MessagesController extends Controller
 
             // send to user using pusher
             if (Auth::user()->id != $request['id']) {
-                Chatify::push("private-chatify.".$request['id'], 'messaging', [
+                Chatify::push("private-chatify." . $request['id'], 'messaging', [
                     'from_id' => Auth::user()->id,
                     'to_id' => $request['id'],
                     'message' => $messageData
@@ -172,16 +172,48 @@ class MessagesController extends Controller
     {
         $query = Chatify::fetchMessagesQuery($request['id'])->latest();
         $messages = $query->paginate($request->per_page ?? $this->perPage);
-        $totalMessages = $messages->total();
-        $lastPage = $messages->lastPage();
-        $response = [
-            'total' => $totalMessages,
-            'last_page' => $lastPage,
-            'last_message_id' => collect($messages->items())->last()->id ?? null,
-            'messages' => $messages->items(),
-        ];
-        return Response::json($response);
+
+        $items = collect($messages->items())->map(function ($msg) {
+            return $this->transformMessage($msg);
+        });
+
+        return response()->json([
+            'total' => $messages->total(),
+            'last_page' => $messages->lastPage(),
+            'last_message_id' => $items->first()['id'] ?? null,
+            'messages' => $items->values(),
+        ]);
     }
+
+    protected function transformMessage($msg)
+    {
+        $attachment = null;
+
+        if ($msg->attachment) {
+            $att = json_decode($msg->attachment, true);
+            $path = config('chatify.attachments.folder') . '/' . $att['new_name'];
+
+            $attachment = [
+                'url' => asset(
+                    Storage::disk(config('chatify.storage_disk_name'))->url($path)
+                ),
+                'name' => $att['old_name'],
+                'mime' => pathinfo($att['old_name'], PATHINFO_EXTENSION),
+            ];
+        }
+
+        return [
+            'id' => $msg->id,
+            'from_id' => $msg->from_id,
+            'to_id' => $msg->to_id,
+            'type' => $attachment ? 'image' : 'text',
+            'text' => $attachment ? null : $msg->body,
+            'attachment' => $attachment,
+            'seen' => (bool) $msg->seen,
+            'created_at' => $msg->created_at->toISOString(),
+        ];
+    }
+
 
     /**
      * Make messages as seen
@@ -212,15 +244,15 @@ class MessagesController extends Controller
             $join->on('ch_messages.from_id', '=', 'users.id')
                 ->orOn('ch_messages.to_id', '=', 'users.id');
         })
-        ->where(function ($q) {
-            $q->where('ch_messages.from_id', Auth::user()->id)
-            ->orWhere('ch_messages.to_id', Auth::user()->id);
-        })
-        ->where('users.id','!=',Auth::user()->id)
-        ->select('users.*',DB::raw('MAX(ch_messages.created_at) max_created_at'))
-        ->orderBy('max_created_at', 'desc')
-        ->groupBy('users.id')
-        ->paginate($request->per_page ?? $this->perPage);
+            ->where(function ($q) {
+                $q->where('ch_messages.from_id', Auth::user()->id)
+                    ->orWhere('ch_messages.to_id', Auth::user()->id);
+            })
+            ->where('users.id', '!=', Auth::user()->id)
+            ->select('users.*', DB::raw('MAX(ch_messages.created_at) max_created_at'))
+            ->orderBy('max_created_at', 'desc')
+            ->groupBy('users.id')
+            ->paginate($request->per_page ?? $this->perPage);
 
         return response()->json([
             'contacts' => $users->items(),
@@ -275,9 +307,9 @@ class MessagesController extends Controller
     public function search(Request $request)
     {
         $input = trim(filter_var($request['input']));
-        $records = User::where('id','!=',Auth::user()->id)
-                    ->where('name', 'LIKE', "%{$input}%")
-                    ->paginate($request->per_page ?? $this->perPage);
+        $records = User::where('id', '!=', Auth::user()->id)
+            ->where('name', 'LIKE', "%{$input}%")
+            ->paginate($request->per_page ?? $this->perPage);
 
         foreach ($records->items() as $index => $record) {
             $records[$index] += Chatify::getUserWithAvatar($record);
